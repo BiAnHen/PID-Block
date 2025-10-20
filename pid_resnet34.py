@@ -389,7 +389,7 @@ def train_and_eval(model, model_name, trainloader, testloader, device, epochs=10
     return best_acc, total_training_time
 
 def run_experiment(gpu_id):
-    SEED = 9999
+    SEED = 2025
     set_seed(SEED)
     device = torch.device(f"cuda:{gpu_id}" if torch.cuda.is_available() else "cpu")
     print(f"使用设备: {device}")
@@ -459,7 +459,7 @@ def run_experiment(gpu_id):
     set_seed(SEED); se_model = SEResNet34(num_classes=NUM_CLASSES)
     set_seed(SEED); eca_model = ECAResNet34(num_classes=NUM_CLASSES)
     set_seed(SEED); cbam_model = CBAMResNet34(num_classes=NUM_CLASSES)
-    set_seed(SEED)  # 加载模型之后重置SEED，保证可复现
+    set_seed(SEED)  
     pid_model = PIDANET(num_classes=NUM_CLASSES, base_planes=64, d_stages=[False, False, False, True])
 
     # --- 模型复杂度对齐检查 ---
@@ -490,12 +490,12 @@ def run_experiment(gpu_id):
     num_epochs_for_run = 100
     
     # 训练并评估 Baseline
-    # base_acc, base_time = train_and_eval(baseline_model, "ResNet34 Baseline9999", trainloader, testloader, device, epochs=num_epochs_for_run, logger=main_logger)
+    # base_acc, base_time = train_and_eval(baseline_model, "ResNet34 Baseline", trainloader, testloader, device, epochs=num_epochs_for_run, logger=main_logger)
     # 训练并评估 SE-ResNet
     # se_acc, se_time = train_and_eval(se_model, "SE-ResNet34", trainloader, testloader, device, epochs=num_epochs_for_run, logger=main_logger)
     # eca_acc, eca_time = train_and_eval(eca_model, "ECA-ResNet34", trainloader, testloader, device, epochs=num_epochs_for_run, logger=main_logger)
     # cbam_acc, cbam_time = train_and_eval(cbam_model, "CBAM-ResNet34", trainloader, testloader, device, epochs=num_epochs_for_run, logger=main_logger)
-    pid_acc, pid_time = train_and_eval(pid_model, "PID34(0001a)559999", trainloader, testloader, device, epochs=num_epochs_for_run, logger=main_logger)
+    pid_acc, pid_time = train_and_eval(pid_model, "PID34(0001a)55", trainloader, testloader, device, epochs=num_epochs_for_run, logger=main_logger)
     
     # --- 测量延迟 ---
     inference_batch_size = BATCH_SIZE
@@ -529,7 +529,7 @@ def run_experiment(gpu_id):
 
 # --- 程序入口 ---
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='在Tiny ImageNet上进行ResNet-34, SE-ResNet-34和PID-ResNet-34的对比实验')
+    parser = argparse.ArgumentParser(description='在Flowers-5上进行ResNet-34, SE-ResNet-34和PID-ResNet-34的对比实验')
     parser.add_argument('--gpu', type=int, default=0, help='要使用的GPU ID')
     args = parser.parse_args()
     run_experiment(gpu_id=args.gpu)
