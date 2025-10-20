@@ -206,7 +206,7 @@ class CBAMBasicBlock(nn.Module):
             nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(planes)
         )
-        self.cbam = CBAM(planes) # 在残差路径后加入CBAM模块
+        self.cbam = CBAM(planes) 
         self.shortcut = nn.Sequential()
         if stride != 1 or in_planes != self.expansion * planes:
             self.shortcut = nn.Sequential(
@@ -222,75 +222,12 @@ class CBAMBasicBlock(nn.Module):
 # ==============================================================
 
 class PIDBlock(nn.Module):
-    expansion = 1
-    def __init__(self, in_planes, planes, stride=1):
-        super(PIDBlock, self).__init__()
-        self.p_path = nn.Sequential(
-                    nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False),
-                    nn.BatchNorm2d(planes),
-                    nn.ReLU(inplace=True),
-                    nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False),
-                    nn.BatchNorm2d(planes)
-                )
-        self.d_path = nn.Sequential(
-            # nn.Conv2d(in_planes, in_planes, kernel_size=3, stride=stride, padding=1, groups=in_planes, bias=False),
-            nn.Conv2d(in_planes, in_planes, kernel_size=5, stride=stride, padding=2, groups=in_planes, bias=False),
-            # nn.Conv2d(in_planes, in_planes, kernel_size=7, stride=stride, padding=3, groups=in_planes, bias=False),
-            nn.BatchNorm2d(in_planes),
-            nn.Conv2d(in_planes, planes, kernel_size=1, bias=False),
-            nn.BatchNorm2d(planes)
-        )
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_planes != self.expansion * planes:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(self.expansion * planes)
-            )
-        self.alpha = nn.Parameter(torch.zeros(1))
-
-    def forward(self, x):
-        identity = self.shortcut(x)
-        p_out = self.p_path(x)
-        d_out = self.d_path(x)
-        out = F.relu(identity + p_out + self.alpha * d_out) 
-        # out = F.relu(identity + p_out + d_out) 
-        return out
+    pass
 
 # ===========================================================
 
 class GenericNet(nn.Module):
-    def __init__(self, block_types, num_blocks, num_classes=10, base_planes=64):
-        super(GenericNet, self).__init__()
-        self.in_planes = base_planes
-        
-        self.conv1 = nn.Conv2d(3, base_planes, 3, 1, 1, bias=False)
-        self.bn1 = nn.BatchNorm2d(base_planes)
-        self.relu = nn.ReLU(inplace=True)
-
-        self.layer1 = self._make_layer(block_types[0], base_planes, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block_types[1], base_planes * 2, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block_types[2], base_planes * 4, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(block_types[3], base_planes * 8, num_blocks[3], stride=2)
-        
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.linear = nn.Linear(base_planes * 8 * block_types[-1].expansion, num_classes)
-
-    def _make_layer(self, block, planes, num_blocks, stride):
-        strides = [stride] + [1] * (num_blocks - 1)
-        layers = []
-        for s in strides:
-            layers.append(block(self.in_planes, planes, s))
-            self.in_planes = planes * block.expansion
-        return nn.Sequential(*layers)
-
-    def forward(self, x):
-        out = self.relu(self.bn1(self.conv1(x)))
-        out = self.layer1(out); out = self.layer2(out)
-        out = self.layer3(out); out = self.layer4(out)
-        out = self.avgpool(out)
-        out = torch.flatten(out, 1)
-        out = self.linear(out)
-        return out
+    pass
 
 def measure_inference_latency(model, device, input_size=(1, 3, 32, 32), batch_size=128, num_warmup=20, num_reps=100):
     print(f"\n--- 开始测量延迟: Batch Size={batch_size}, Reps={num_reps} ---")
@@ -330,7 +267,7 @@ def train_and_eval(model, model_name, trainloader, testloader, device, epochs=10
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
     best_acc, best_model_path = 0.0, ""
     total_start_time = time.time()
-    save_dir = './Flowers5_seed_42'
+    save_dir = './Flowers5'
     os.makedirs(save_dir, exist_ok=True)
 
     for epoch in range(epochs):
